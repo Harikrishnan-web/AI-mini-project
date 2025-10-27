@@ -2,12 +2,12 @@ import chess
 import pygame
 import random
 import math
-# os import is no longer strictly needed but kept for potential future use
+import sys # Using sys for clean exit
 
-# --- 1. (Keep) Piece Values for Evaluation ---
+# --- 1. Piece Values for Evaluation ---
 class PieceValues:
     """
-    Simple piece-square table values for chess evaluation. 
+    Piece-square table values and material values for chess evaluation.
     Values are from White's perspective.
     """
     PAWN_W = [
@@ -30,13 +30,14 @@ class PieceValues:
         chess.KING: 20000
     }
 
-# --- 2. (Keep) Minimax AI Agent ---
+# --- 2. Minimax AI Agent ---
 class MinimaxAI:
     """A simple AI agent using the Minimax algorithm with Alpha-Beta Pruning."""
     def __init__(self, depth=3):
         self.depth = depth
 
     def evaluate_board(self, board):
+        """Calculates the material and positional advantage."""
         if board.is_checkmate():
             if board.turn == chess.BLACK: return 100000000
             else: return -100000000
@@ -53,9 +54,12 @@ class MinimaxAI:
         return score
 
     def minimax(self, board, depth, alpha, beta, maximizing_player):
+        """The core recursive Minimax algorithm with Alpha-Beta Pruning."""
         if depth == 0 or board.is_game_over(): return self.evaluate_board(board)
+        
         moves = list(board.legal_moves)
         moves.sort(key=lambda move: self.get_move_value(board, move), reverse=True)
+        
         if maximizing_player:
             max_eval = -math.inf
             for move in moves:
@@ -72,6 +76,7 @@ class MinimaxAI:
             return min_eval
     
     def get_move_value(self, board, move):
+        """Heuristic to prioritize captures for move ordering."""
         if board.is_capture(move):
             captured_piece = board.piece_at(move.to_square)
             if captured_piece: return PieceValues.MATERIAL_VALUES.get(captured_piece.piece_type, 0) + 1000
@@ -79,6 +84,7 @@ class MinimaxAI:
         return 0
 
     def find_best_move(self, board):
+        """Searches for the best move using Minimax."""
         best_move = None
         maximizing_player = board.turn == chess.WHITE
         max_eval = -math.inf if maximizing_player else math.inf
@@ -99,18 +105,16 @@ class MinimaxAI:
 
         return best_move
 
-## Chess GUI (Text-Based Pieces)
-
+# --- 3. Chess GUI (Text-Based Pieces) ---
 class ChessGUI:
     def __init__(self, ai_depth=3):
-        # Initialize Game State and AI
         self.board = chess.Board()
         self.ai_agent = MinimaxAI(depth=ai_depth)
         self.ai_color = chess.BLACK
         self.square_selected = None
         self.game_running = True
 
-        # Pygame Constants
+        # Pygame setup
         pygame.init()
         self.SQUARE_SIZE = 80
         self.WIDTH = 8 * self.SQUARE_SIZE
@@ -123,15 +127,12 @@ class ChessGUI:
         self.LIGHT_SQUARE = (240, 217, 181)
         self.DARK_SQUARE = (181, 136, 99)
         self.HIGHLIGHT_COLOR = (100, 255, 100)
-        self.TEXT_COLOR_WHITE = (255, 255, 255)
         self.TEXT_COLOR_BLACK = (0, 0, 0)
 
-        # Font and Piece Mapping for Text Rendering
+        # Font and Piece Mapping
         try:
-            # Use a standard font for simplicity
             self.FONT = pygame.font.SysFont("segoeuisymbol", int(self.SQUARE_SIZE * 0.7))
         except:
-            # Fallback for systems without the specific font
             self.FONT = pygame.font.Font(None, int(self.SQUARE_SIZE * 0.7)) 
             
         self.PIECE_SYMBOLS = self.load_unicode_pieces()
@@ -157,7 +158,7 @@ class ChessGUI:
         
         if self.square_selected is not None:
             r, c = divmod(self.square_selected, 8)
-            display_r = 7 - r # Convert chess rank (0-7) to pygame row (7-0)
+            display_r = 7 - r
             pygame.draw.rect(self.SCREEN, self.HIGHLIGHT_COLOR, 
                              (c * self.SQUARE_SIZE, display_r * self.SQUARE_SIZE, 
                               self.SQUARE_SIZE, self.SQUARE_SIZE), 3)
@@ -168,20 +169,13 @@ class ChessGUI:
         for square in chess.SQUARES:
             piece = self.board.piece_at(square)
             if piece:
-                # Get the Unicode symbol
                 text_symbol = self.PIECE_SYMBOLS.get(piece.symbol())
-                
-                # Choose color: Black symbols for White pieces, White symbols for Black pieces 
-                # (to ensure visibility on dark/light squares)
-                color = self.TEXT_COLOR_BLACK if piece.color == chess.WHITE else self.TEXT_COLOR_BLACK 
-                
-                # Render the text
+                color = self.TEXT_COLOR_BLACK 
                 text_surface = self.FONT.render(text_symbol, True, color)
                 
                 r, c = divmod(square, 8)
                 display_r = 7 - r
 
-                # Center the text within the square
                 text_rect = text_surface.get_rect(
                     center=(c * self.SQUARE_SIZE + self.SQUARE_SIZE // 2, 
                             display_r * self.SQUARE_SIZE + self.SQUARE_SIZE // 2)
@@ -202,20 +196,16 @@ class ChessGUI:
         clicked_square = self.get_square_from_coords(pos)
         
         if self.square_selected is None:
-            # First click: Select a piece of the current player's color
             piece = self.board.piece_at(clicked_square)
             if piece and piece.color == self.board.turn:
                 self.square_selected = clicked_square
         else:
-            # Second click: Attempt to make a move
             from_square = self.square_selected
             to_square = clicked_square
-            self.square_selected = None # Reset selection immediately
+            self.square_selected = None
 
-            # Form move in UCI format (e.g., 'e2e4')
             uci_move = chess.square_name(from_square) + chess.square_name(to_square)
             
-            # Simple handling for promotion: default to Queen
             piece_at_from = self.board.piece_at(from_square)
             if piece_at_from and piece_at_from.piece_type == chess.PAWN and \
                (chess.square_rank(to_square) == 7 or chess.square_rank(to_square) == 0):
@@ -236,7 +226,6 @@ class ChessGUI:
         print("AI is thinking...")
         pygame.display.set_caption("Minimax Chess AI - AI Thinking...")
         
-        # Ensures the GUI updates while AI is calculating
         pygame.event.pump() 
         
         ai_move = self.ai_agent.find_best_move(self.board)
@@ -263,9 +252,8 @@ class ChessGUI:
         else:
             text = font.render('DRAW!', True, (255, 0, 0))
         
-        # Draw a semi-transparent background box
         s = pygame.Surface((self.WIDTH, 100))
-        s.set_alpha(180)  # Transparency
+        s.set_alpha(180)
         s.fill((100, 100, 100))
         self.SCREEN.blit(s, (0, self.HEIGHT // 2 - 50))
 
@@ -273,7 +261,6 @@ class ChessGUI:
         self.SCREEN.blit(text, text_rect)
         pygame.display.flip()
         
-        # Keep the game over screen visible for a few seconds
         pygame.time.wait(5000)
 
 
@@ -288,16 +275,13 @@ class ChessGUI:
                     pos = pygame.mouse.get_pos()
                     self.handle_click(pos)
 
-            # AI Turn
             if self.board.turn == self.ai_color and self.game_running:
                 self.run_ai_turn()
 
-            # Drawing
             self.draw_board()
             self.draw_pieces()
             pygame.display.flip()
 
-            # Check for Game Over after any move
             if self.board.is_game_over():
                 self.display_game_over()
                 self.game_running = False
@@ -305,11 +289,9 @@ class ChessGUI:
             self.CLOCK.tick(60)
 
         pygame.quit()
+        sys.exit()
 
 
-# --- Run the Graphical Game ---
 if __name__ == "__main__":
-    # Ensure Pygame is installed: pip install pygame
-    # Adjust the depth for stronger/weaker AI (higher = slower/stronger)
     gui_game = ChessGUI(ai_depth=3) 
     gui_game.run()
