@@ -1,4 +1,223 @@
-# AI-mini-project
-🤖 Python Minimax Chess AI EngineThis project presents a self-contained, graphical chess game where the opponent is an Artificial Intelligence agent utilizing the classic Minimax Algorithm enhanced with Alpha-Beta Pruning. The goal is to provide a functional and educational example of game AI implementation in Python.✨ Core FeaturesAlgorithmic Opponent: AI plays as Black, searching for the best move against the human player (White).Performance Optimization: Includes Alpha-Beta Pruning for drastically improved search efficiency.Text-Based Graphics: Uses Pygame and Unicode symbols (♜, ♛, ♔, etc.) to create a functional, cross-platform graphical interface without requiring any image assets.Modular Design: Separates the AI logic (MinimaxAI) from the visual presentation (ChessGUI) for clarity.🚀 Getting Started1. RequirementsEnsure you have Python 3.x installed on your system.2. InstallationThis project relies on two popular Python libraries: python-chess for rules and board management, and pygame for the graphical interface.Bashpip install python-chess pygame
-3. ExecutionSave the provided code as a Python file (e.g., chess_ai.py) and run it from your terminal:Bashpython chess_ai.py
-🎮 How to PlayThe game will open a new window showing the chessboard. You control the White pieces.Select a Piece: Click on any of your pieces (White). The square will be highlighted in green.Move: Click the destination square. If the move is legal, it will be executed.AI Turn: Once you move, the AI (Black) will begin its calculation. The window title indicates when the "AI is Thinking...".Game End: The game concludes automatically upon checkmate, stalemate, or other draw conditions.⚙️ The AI Engine ExplainedThe strength and speed of the AI are defined by three components: the evaluation function, the search algorithm, and the search depth.1. The Minimax SearchMinimax is a decision rule used in zero-sum games (like chess) where one player's gain is exactly equal to the other player's loss.Maximizer (White): Aims to find a move leading to the highest possible board score.Minimizer (Black/AI): Aims to find a move leading to the lowest possible board score (as a high score is good for White).The process is recursive: the AI assumes you (the Maximizer) will choose the best possible move in response to any move it makes.2. Alpha-Beta Pruning (The Speed Hack)Chess has an enormous game tree. Without optimization, a depth-4 search could take minutes or hours. Alpha-Beta pruning avoids exploring branches of the tree that can be mathematically proven not to contain the best move.Alpha ($\alpha$): The best (highest) score the Maximizer is currently guaranteed at this level or above.Beta ($\beta$): The best (lowest) score the Minimizer is currently guaranteed at this level or above.The crucial rule is: If $\beta \le \alpha$, stop searching this branch. If the Minimizer finds a move that leads to a position worse than the Maximizer can already force elsewhere, the Maximizer won't choose this path, so it's irrelevant and can be "pruned."3. Evaluation Function (evaluate_board)The evaluation function assigns a numeric value to a static board position, representing its tactical advantage.$$\text{Board Value} = \sum_{\text{White Pieces}} (\text{Material} + \text{Position}) - \sum_{\text{Black Pieces}} (\text{Material} + \text{Position})$$Material: Basic point value for each piece (Pawn: 100, Queen: 900, etc.).Position: Piece-Square Tables (PAWN_W, PAWN_B) are arrays that add or subtract value based on where a piece is located, encouraging central control and king safety.4. Search DepthThe ai_depth parameter controls how many moves (plies) the AI looks ahead. The default depth of 3 provides an intermediate challenge and fast response time.DepthPlies (Half-Moves)Impact on Difficulty22Very basic; fast.33Reasonable tactics; intermediate.44Stronger positional play; slower calculation.
+Here’s a **plagiarism-free, professional `README.md`** for your chess project.
+It clearly explains the **purpose, algorithm, structure, and usage** of your code.
+
+---
+
+# ♟️ Minimax Chess AI with Pygame
+
+A visually interactive chess game built using **Python**, **Pygame**, and **python-chess**.
+It features a **Minimax AI with Alpha-Beta Pruning** that evaluates positions using **piece-square tables** and **material scoring**.
+
+---
+
+## 🧠 Project Overview
+
+This project implements a playable chess interface where:
+
+* The **human plays as White**.
+* The **AI (Black)** makes moves using the **Minimax algorithm**.
+* The board and pieces are rendered using **Pygame**.
+* The AI evaluates moves based on **material balance**, **positional value**, and **capture prioritization**.
+
+---
+
+## ⚙️ Core Features
+
+✅ **Full Chess Rules:**
+Supports legal moves, captures, castling, promotions, and checkmates using the `python-chess` library.
+
+✅ **Minimax Algorithm with Alpha-Beta Pruning:**
+Efficiently searches the game tree to find the most promising move within a given search depth.
+
+✅ **Heuristic Evaluation:**
+Each position is scored based on material and piece placement using **piece-square tables**.
+
+✅ **Interactive GUI:**
+Play directly via mouse clicks on a clean, color-coded chessboard.
+
+✅ **AI Move Ordering:**
+Captures are evaluated first to speed up pruning and improve decision quality.
+
+---
+
+## 🧩 Algorithm Explanation
+
+### 🔹 1. Evaluation Function
+
+The **evaluation function** estimates how good a board position is for White.
+
+It combines:
+
+* **Material Value:** Each piece type has a numeric worth (e.g., Queen = 900).
+* **Positional Value:** A piece-square table rewards strategic positions (e.g., central pawns).
+
+Example scoring snippet:
+
+```python
+score += PieceValues.MATERIAL_VALUES[piece_type]
+if piece_type == chess.PAWN:
+    score += PieceValues.PAWN_W[square]
+```
+
+If the board is checkmate, stalemate, or repetition, large positive or negative scores are used accordingly.
+
+---
+
+### 🔹 2. Minimax with Alpha-Beta Pruning
+
+The **Minimax algorithm** recursively explores possible move sequences to a certain depth.
+
+* The **maximizing player** (White) tries to maximize the evaluation score.
+* The **minimizing player** (Black) tries to minimize it.
+* **Alpha-Beta pruning** skips branches that cannot influence the final decision.
+
+Pseudo-logic:
+
+```python
+if depth == 0 or game over:
+    return evaluate(board)
+
+if maximizing_player:
+    for move in legal_moves:
+        make move
+        eval = minimax(next_state, depth-1, alpha, beta, False)
+        undo move
+        alpha = max(alpha, eval)
+        if beta <= alpha: break
+else:
+    for move in legal_moves:
+        make move
+        eval = minimax(next_state, depth-1, alpha, beta, True)
+        undo move
+        beta = min(beta, eval)
+        if beta <= alpha: break
+```
+
+This allows the AI to think several moves ahead without checking every single possibility.
+
+---
+
+### 🔹 3. Move Ordering
+
+To improve efficiency, moves that capture higher-value pieces are checked first:
+
+```python
+if board.is_capture(move):
+    captured_piece = board.piece_at(move.to_square)
+    return PieceValues.MATERIAL_VALUES.get(captured_piece.piece_type, 0) + 1000
+```
+
+This helps pruning occur earlier in the game tree, speeding up the AI’s decision process.
+
+---
+
+### 🔹 4. Graphical Interface (Pygame)
+
+The chessboard is drawn using an 8×8 grid of alternating light and dark squares.
+Pieces are rendered as **Unicode characters** (♔♕♖♗♘♙ for White, ♚♛♜♝♞♟ for Black).
+
+The GUI handles:
+
+* Mouse clicks for selecting and moving pieces.
+* Highlighting selected squares.
+* Displaying game results (checkmate, stalemate, etc.).
+
+---
+
+## 🧰 Project Structure
+
+```
+chess_minimax/
+│
+├── main.py            # Main entry point (contains GUI + AI logic)
+├── README.md           # Project documentation (this file)
+└── requirements.txt    # Dependencies list
+```
+
+---
+
+## 🐍 Requirements
+
+To run this project, install dependencies:
+
+```bash
+pip install pygame python-chess
+```
+
+---
+
+## ▶️ How to Run
+
+1. **Clone or download** the repository.
+2. Run the main script:
+
+   ```bash
+   python main.py
+   ```
+3. The Pygame window will open — you play **White**, and the AI plays **Black**.
+
+---
+
+## 🧠 Adjustable AI Difficulty
+
+You can modify the AI’s thinking depth when creating the `ChessGUI` object:
+
+```python
+if __name__ == "__main__":
+    gui_game = ChessGUI(ai_depth=3)  # Increase depth for stronger AI
+    gui_game.run()
+```
+
+* `ai_depth=2`: Faster but weaker AI
+* `ai_depth=4+`: Slower but much stronger
+
+---
+
+## 🧩 Libraries Used
+
+| Library          | Purpose                                             |
+| ---------------- | --------------------------------------------------- |
+| **python-chess** | Handles chess rules, move legality, and board logic |
+| **pygame**       | GUI and user interaction                            |
+| **math, random** | Used for evaluation and move ordering               |
+| **sys**          | Ensures a clean exit after quitting                 |
+
+---
+
+## 🏁 Game End Conditions
+
+The game automatically detects:
+
+* **Checkmate**
+* **Stalemate**
+* **Insufficient Material**
+* **Repetition**
+
+When the game ends, a message (e.g., “WHITE WINS!” or “DRAW!”) appears before the window closes.
+
+---
+
+## 📈 Possible Improvements
+
+* Implement **iterative deepening** or **transposition tables** for performance.
+* Add **move hints** or **undo functionality**.
+* Include **opening books** or **endgame heuristics**.
+* Introduce **sound effects** and **move highlighting animations**.
+
+---
+
+## 👨‍💻 Author
+
+**Your Name**
+Python Developer | AI & Game Enthusiast
+
+---
+
+## 📜 License
+
+This project is released under the **MIT License**.
+You are free to modify, distribute, and use it for educational or personal purposes.
+
+---
+
+Would you like me to include a **formatted `requirements.txt`** and **diagram of the algorithm (flowchart)** in the README as well? I can append that for better documentation.
