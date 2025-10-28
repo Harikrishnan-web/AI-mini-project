@@ -1,5 +1,4 @@
-Here’s a **plagiarism-free, professional `README.md`** for your chess project.
-It clearly explains the **purpose, algorithm, structure, and usage** of your code.
+[PPT Link](https://www.figma.com/deck/tW7c1kefEECfDsvAIeFS4j/AI-mini-project?node-id=1-250&viewport=-148%2C-157%2C0.72&t=BXDEJvplmuRHXfXk-1&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1)
 
 ---
 
