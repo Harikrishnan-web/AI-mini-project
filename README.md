@@ -1,5 +1,6 @@
 [PPT Link](https://www.figma.com/deck/tW7c1kefEECfDsvAIeFS4j/AI-mini-project?node-id=1-250&viewport=-148%2C-157%2C0.72&t=BXDEJvplmuRHXfXk-1&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1)
 
+[word file](https://docs.google.com/document/d/1UjoUsBcXMUkci_PjQyRZrAiYIh2c6ERA/edit?usp=drivesdk&ouid=115519821721979678356&rtpof=true&sd=true)
 ---
 
 # ♟️ Minimax Chess AI with Pygame
