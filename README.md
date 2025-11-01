@@ -219,4 +219,3 @@ You are free to modify, distribute, and use it for educational or personal purpo
 
 ---
 
-Would you like me to include a **formatted `requirements.txt`** and **diagram of the algorithm (flowchart)** in the README as well? I can append that for better documentation.
